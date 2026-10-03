@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
-import { fixtures } from '@/lib/football';
+import { getFixtures } from '@/lib/football';
 
 export async function GET() {
-  return NextResponse.json({ fixtures });
+  const fixtures = await getFixtures();
+
+  return NextResponse.json({
+    ok: true,
+    source: process.env.SPORTS_API_KEY ? 'external' : 'mock',
+    fixtures,
+  });
 }

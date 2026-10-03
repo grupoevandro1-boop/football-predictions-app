@@ -1,25 +1,35 @@
 import { NextResponse } from 'next/server';
-import { setSessionCookie, signToken } from '@/lib/auth';
-import { fixtures } from '@/lib/football';
+import { getSessionFromCookies } from '@/lib/auth';
 
 export async function GET() {
-  return NextResponse.json({ fixtures });
+  const session = await getSessionFromCookies();
+
+  if (!session) {
+    return NextResponse.json({ ok: false, predictions: [] }, { status: 401 });
+  }
+
+  const { predictions } = await import('@/lib/store');
+  const userPredictions = predictions.filter((item) => item.userId === session.userId);
+
+  return NextResponse.json({
+    ok: true,
+    predictions: userPredictions,
+  });
 }
 
 export async function POST(request: Request) {
   try {
+    const session = await getSessionFromCookies();
+
+    if (!session) {
+      return NextResponse.json({ error: 'Você precisa estar autenticado.' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { fixtureId, fixtureLabel, homeScore, awayScore, confidence, market } = body ?? {};
 
     if (!fixtureId || !fixtureLabel || !market) {
       return NextResponse.json({ error: 'Dados insuficientes do palpite.' }, { status: 400 });
-    }
-
-    const { getSessionFromCookies } = await import('@/lib/auth');
-    const session = await getSessionFromCookies();
-
-    if (!session) {
-      return NextResponse.json({ error: 'Você precisa estar autenticado.' }, { status: 401 });
     }
 
     const { createPredictionRecord, predictions } = await import('@/lib/store');

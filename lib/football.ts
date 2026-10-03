@@ -22,7 +22,7 @@ export const stats = [
   { label: 'Palpites totais', value: '1.248', tone: 'brand' },
   { label: 'Aproveitamento', value: '68.4%', tone: 'emerald' },
   { label: 'ROI médio', value: '+12.8%', tone: 'blue' },
-];
+] as const;
 
 export const topLeagues = ['Premier League', 'LaLiga', 'Serie A', 'Bundesliga', 'Ligue 1'];
 
@@ -101,6 +101,58 @@ export const fixtures: Fixture[] = [
   },
 ];
 
+export async function fetchFixturesFromExternalApi(): Promise<Fixture[]> {
+  const apiKey = process.env.SPORTS_API_KEY;
+  const apiHost = process.env.SPORTS_API_HOST;
+
+  if (!apiKey || !apiHost) {
+    return fixtures;
+  }
+
+  try {
+    const response = await fetch(`https://${apiHost}/fixtures?live=all`, {
+      headers: {
+        'x-rapidapi-key': apiKey,
+        'x-rapidapi-host': apiHost,
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      return fixtures;
+    }
+
+    const data = await response.json();
+    const items = Array.isArray(data?.response) ? data.response.slice(0, 6) : [];
+
+    if (!items.length) {
+      return fixtures;
+    }
+
+    return items.map((match: any, index: number) => ({
+      id: String(match.fixture?.id ?? index + 1),
+      league: match.league?.name ?? `League ${index + 1}`,
+      homeTeam: match.teams?.home?.name ?? `Home ${index + 1}`,
+      awayTeam: match.teams?.away?.name ?? `Away ${index + 1}`,
+      kickoff: match.fixture?.date ? new Date(match.fixture.date).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : fixtures[index]?.kickoff ?? 'Hoje',
+      status: match.fixture?.status?.short === 'NS' ? 'Próximo' : 'Ao vivo',
+      odds: {
+        home: Number(match.bookmakers?.[0]?.bets?.[0]?.values?.[0]?.odd ?? fixtures[index]?.odds.home ?? 2.0),
+        draw: Number(match.bookmakers?.[0]?.bets?.[0]?.values?.[1]?.odd ?? fixtures[index]?.odds.draw ?? 3.2),
+        away: Number(match.bookmakers?.[0]?.bets?.[0]?.values?.[2]?.odd ?? fixtures[index]?.odds.away ?? 3.8),
+      },
+      form: {
+        home: fixtures[index]?.form.home ?? 'W W D',
+        away: fixtures[index]?.form.away ?? 'D W L',
+      },
+      prediction: fixtures[index]?.prediction ?? 'Home 1-0',
+      confidence: fixtures[index]?.confidence ?? 72,
+    }));
+  } catch {
+    return fixtures;
+  }
+}
+
 export async function getFixtures() {
-  return fixtures;
+  return fetchFixturesFromExternalApi();
 }
