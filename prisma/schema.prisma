@@ -1,72 +1,7 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-model User {
-  id            String        @id @default(cuid())
-  name          String?
-  email         String        @unique
-  passwordHash  String
-  createdAt     DateTime      @default(now())
-  predictions   Prediction[]
-  sessions      Session[]
-}
-
-model Session {
-  id          String   @id @default(cuid())
-  userId      String
-  tokenHash   String
-  createdAt   DateTime @default(now())
-  expiresAt   DateTime
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model League {
-  id          String    @id @default(cuid())
-  name        String
-  country     String?
-  fixtures    Fixture[]
-}
-
-model Team {
-  id          String    @id @default(cuid())
-  name        String
-  shortName   String?
-  logoUrl     String?
-  homeFixtures Fixture[] @relation("homeFixtures")
-  awayFixtures Fixture[] @relation("awayFixtures")
-}
-
-model Fixture {
-  id          String      @id @default(cuid())
-  externalId  String?     @unique
-  leagueId    String
-  league      League      @relation(fields: [leagueId], references: [id])
-  homeTeamId  String
-  awayTeamId  String
-  homeTeam    Team        @relation("homeFixtures", fields: [homeTeamId], references: [id])
-  awayTeam    Team        @relation("awayFixtures", fields: [awayTeamId], references: [id])
-  kickoffAt   DateTime
-  status      String
-  homeScore   Int?
-  awayScore   Int?
-  predictions Prediction[]
-}
-
-model Prediction {
-  id          String   @id @default(cuid())
-  userId      String
-  fixtureId   String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fixture     Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
-  homeScore   Int
-  awayScore   Int
-  market      String
-  confidence  Float
-  createdAt   DateTime @default(now())
-}
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=change-me-in-production
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/football_predictions?schema=public"
+JWT_SECRET=super-secret-key-change-me
+SPORTS_API_KEY=
+SPORTS_API_HOST=api-football-v1.p.rapidapi.com
