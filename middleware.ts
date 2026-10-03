@@ -1,22 +1,19 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { getSessionFromCookies } from '@/lib/auth';
 
-const protectedRoutes = ['/dashboard', '/jogos', '/palpites'];
+export async function GET() {
+  const session = await getSessionFromCookies();
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const token = request.cookies.get('football_predictions_session')?.value;
-
-  const isProtected = protectedRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
-
-  if (isProtected && !token) {
-    const loginUrl = new URL('/auth/login', request.url);
-    return NextResponse.redirect(loginUrl);
+  if (!session) {
+    return NextResponse.json({ ok: false, user: null }, { status: 401 });
   }
 
-  return NextResponse.next();
+  return NextResponse.json({
+    ok: true,
+    user: {
+      id: session.userId,
+      email: session.email,
+      name: session.name,
+    },
+  });
 }
-
-export const config = {
-  matcher: ['/dashboard/:path*', '/jogos/:path*', '/palpites/:path*'],
-};

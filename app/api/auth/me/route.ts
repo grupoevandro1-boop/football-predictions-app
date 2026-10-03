@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { getSessionFromCookies } from '@/lib/auth';
+import { clearSessionCookie } from '@/lib/auth';
+
+export async function POST() {
+  clearSessionCookie();
+  return NextResponse.redirect(new URL('/auth/login', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'));
+}
 
 export async function GET() {
-  const session = await getSessionFromCookies();
-
-  if (!session) {
-    return NextResponse.json({ ok: false, user: null });
-  }
-
-  return NextResponse.json({ ok: true, user: { id: session.userId, email: session.email, name: session.name } });
+  clearSessionCookie();
+  return NextResponse.redirect(new URL('/auth/login', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'));
 }
