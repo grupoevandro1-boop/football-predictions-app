@@ -1,7 +1,5 @@
+import { NextResponse } from 'next/server';
+
 export async function GET() {
-  return Response.json({
-    ok: true,
-    app: 'football-predictions-app',
-    status: 'running',
-  });
+  return NextResponse.json({ ok: true, status: 'running' });
 }
