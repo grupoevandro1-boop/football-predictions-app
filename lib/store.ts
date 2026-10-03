@@ -42,6 +42,14 @@ export function createUserRecord(name: string, email: string, passwordHash: stri
   };
 }
 
+export function getUserByEmail(email: string) {
+  return users.find((user) => user.email.toLowerCase() === email.toLowerCase());
+}
+
+export function findUserById(userId: string) {
+  return users.find((user) => user.id === userId);
+}
+
 export function createPredictionRecord(
   userId: string,
   fixtureId: string,
@@ -62,12 +70,4 @@ export function createPredictionRecord(
     market,
     createdAt: new Date().toISOString(),
   };
-}
-
-export function getUserByEmail(email: string) {
-  return users.find((user) => user.email.toLowerCase() === email.toLowerCase());
-}
-
-export function findUserById(userId: string) {
-  return users.find((user) => user.id === userId);
 }
